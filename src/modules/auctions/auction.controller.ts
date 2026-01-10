@@ -20,7 +20,12 @@ export class AuctionController {
 
     const q = typeof req.query.q === "string" ? req.query.q : undefined;
 
-    const items = await this.service.list({ status, q });
+    const params: { status?: "DRAFT" | "ACTIVE" | "ENDED"; q?: string } = {};
+
+    if (status !== undefined) params.status = status;
+    if (q !== undefined) params.q = q;
+
+    const items = await this.service.list(params);
     res.status(200).json(items);
   };
 

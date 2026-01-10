@@ -13,6 +13,7 @@ export class AuctionService {
     return this.repo.findMany(params);
   }
 
+
   async get(id: string) {
     const auction = await this.repo.findById(id);
     if (!auction) throw new AppError(404, "NOT_FOUND", "Auction not found");
