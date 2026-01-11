@@ -19,10 +19,24 @@ export class CategoryController {
   };
 
   create = async (req: Request, res: Response) => {
-    const dto = CreateCategorySchema.parse(req.body);
-    const created = await this.service.create(dto);
-    res.status(201).json(created);
+    try {
+      const dto = CreateCategorySchema.parse(req.body);
+      const created = await this.service.create(dto);
+      return res.status(201).json(created);
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        return res.status(409).json({
+          error: "CATEGORY_ALREADY_EXISTS",
+          message: "Category with this name already exists.",
+        });
+      }
+
+      console.error(err);
+      return res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
+    }
   };
+
+
 
   update = async (req: Request, res: Response) => {
     const id = req.params.id;
