@@ -1,47 +1,68 @@
 import { prisma } from "../../db/prisma.js";
+import type { Prisma } from "@prisma/client";
 import type { CreateAuctionDto, UpdateAuctionDto } from "./auction.schema.js";
 
-const stripUndefined = <T extends Record<string, any>>(obj: T) =>
-  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as {
-    [K in keyof T as T[K] extends undefined ? never : K]: Exclude<T[K], undefined>;
-  };
-
-
 export class AuctionRepository {
-  async create(data: CreateAuctionDto) {
-    return prisma.auction.create({ data: stripUndefined(data) });
+  create(dto: CreateAuctionDto) {
+    // Prisma nie lubi `undefined` przy exactOptionalPropertyTypes.
+    // Dla pól nullable dajemy null, dla wymaganych ustawiamy sensowne defaulty.
+    const data: Prisma.AuctionUncheckedCreateInput = {
+      title: dto.title,
+      description: dto.description ?? null,
+      url: dto.url ?? null,
+      status: dto.status ?? "DRAFT",
+      currentPrice: dto.currentPrice ?? 0,
+
+      // Jeśli te pola masz w bazie, ale NIE masz ich w Zod DTO,
+      // to zostawiamy je jako null i bierzemy z dto tylko jeśli istnieją.
+      categoryId: (dto as any).categoryId ?? null,
+      createdByUserId: (dto as any).createdByUserId ?? null,
+    };
+
+    return prisma.auction.create({ data });
   }
 
-  async findMany(params: { status?: "DRAFT" | "ACTIVE" | "ENDED"; q?: string } = {}) {
-    const { status, q } = params;
+  findMany(params: { status?: "DRAFT" | "ACTIVE" | "ENDED"; q?: string }) {
+    const where: Prisma.AuctionWhereInput = {};
+
+    if (params.status) where.status = params.status;
+
+    if (params.q) {
+      // UWAGA: usuwamy `mode: "insensitive"` żeby nie waliło typami na SQLite
+      where.OR = [
+        { title: { contains: params.q } },
+        { description: { contains: params.q } },
+      ];
+    }
 
     return prisma.auction.findMany({
-      where: {
-        ...(status ? { status } : {}),
-        ...(q
-          ? {
-            OR: [
-              { title: { contains: q } },
-              { description: { contains: q } },
-            ],
-          }
-          : {}),
-      },
+      where,
       orderBy: { createdAt: "desc" },
     });
   }
 
-
-  async findById(id: string) {
+  findById(id: string) {
     return prisma.auction.findUnique({ where: { id } });
   }
 
-  async update(id: string, data: UpdateAuctionDto) {
-    const clean = stripUndefined(data);
-    return prisma.auction.update({ where: { id }, data: clean });
+  update(id: string, dto: UpdateAuctionDto) {
+    // Budujemy obiekt update tak, żeby NIE miał undefined
+    const data: Prisma.AuctionUncheckedUpdateInput = {};
+
+    if (dto.title !== undefined) data.title = dto.title;
+    if (dto.description !== undefined) data.description = dto.description ?? null;
+    if (dto.url !== undefined) data.url = dto.url ?? null;
+    if (dto.status !== undefined) data.status = dto.status;
+    if (dto.currentPrice !== undefined) data.currentPrice = dto.currentPrice;
+
+    // jw. - jeśli DTO nie ma tych pól, to i tak się skompiluje
+    if ((dto as any).categoryId !== undefined) data.categoryId = (dto as any).categoryId ?? null;
+    if ((dto as any).createdByUserId !== undefined) data.createdByUserId = (dto as any).createdByUserId ?? null;
+
+    return prisma.auction.update({ where: { id }, data });
   }
 
-  async delete(id: string) {
+  delete(id: string) {
     return prisma.auction.delete({ where: { id } });
   }
 }
