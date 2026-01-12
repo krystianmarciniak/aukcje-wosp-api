@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { CreateCategorySchema, UpdateCategorySchema } from "./category.schema.js";
 import { CategoryService } from "./category.service.js";
 import { AppError } from "../../shared/AppError.js";
+import { prisma } from "../../db/prisma.js";
 
 export class CategoryController {
   private service = new CategoryService();
@@ -9,6 +10,10 @@ export class CategoryController {
   list = async (_req: Request, res: Response) => {
     const items = await this.service.list();
     res.status(200).json(items);
+
+    return prisma.auction.findMany({
+      include: { category: true },
+    });
   };
 
   get = async (req: Request, res: Response) => {
@@ -30,13 +35,10 @@ export class CategoryController {
           message: "Category with this name already exists.",
         });
       }
-
       console.error(err);
       return res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
     }
   };
-
-
 
   update = async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -54,4 +56,14 @@ export class CategoryController {
     await this.service.remove(id);
     res.status(204).send();
   };
+
+auctions = async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) throw new AppError(400, "BAD_REQUEST", "Missing id");
+
+  const items = await this.service.auctions(id);
+  return res.status(200).json(items);
+};
+
+
 }

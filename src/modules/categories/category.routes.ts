@@ -7,6 +7,7 @@ const controller = new CategoryController();
 router.post("/", controller.create);
 router.get("/", controller.list);
 router.get("/:id", controller.get);
+router.get("/:id/auctions", controller.auctions);
 router.patch("/:id", controller.update);
 router.delete("/:id", controller.remove);
 

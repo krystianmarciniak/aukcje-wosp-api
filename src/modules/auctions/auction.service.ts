@@ -1,11 +1,23 @@
 import { AuctionRepository } from "./auction.repository.js";
 import { AppError } from "../../shared/AppError.js";
 import type { CreateAuctionDto, UpdateAuctionDto } from "./auction.schema.js";
+import { prisma } from "../../db/prisma.js";
 
 export class AuctionService {
   constructor(private repo = new AuctionRepository()) { }
 
   async create(dto: CreateAuctionDto) {
+    if (!dto.categoryId) {
+      throw new AppError(400, "CATEGORY_ID_REQUIRED", "categoryId is required");
+    }
+
+    const category = await prisma.category.findUnique({
+      where: { id: dto.categoryId },
+    });
+
+    if (!category) {
+      throw new AppError(404, "CATEGORY_NOT_FOUND", "Category not found");
+    }
     return this.repo.create(dto);
   }
 

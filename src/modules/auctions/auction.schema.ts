@@ -8,6 +8,7 @@ export const CreateAuctionSchema = z.object({
   status: z.enum(["DRAFT", "ACTIVE", "ENDED"]).optional(),
   currentPrice: z.number().int().min(0).optional(),
   url: z.string().url().optional(),
+  categoryId: z.string().min(1),
 });
 
 export const UpdateAuctionSchema = CreateAuctionSchema.partial();

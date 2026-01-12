@@ -1,6 +1,7 @@
 import { AppError } from "../../shared/AppError.js";
 import type { CreateCategoryDto, UpdateCategoryDto } from "./category.schema.js";
 import { CategoryRepository } from "./category.repository.js";
+import { prisma } from "../../db/prisma.js";
 
 export class CategoryService {
   constructor(private repo = new CategoryRepository()) { }
@@ -23,6 +24,13 @@ export class CategoryService {
     await this.get(id);
     return this.repo.update(id, dto);
   }
+
+  async auctions(categoryId: string) {
+  return prisma.auction.findMany({
+    where: { categoryId },
+  });
+}
+
 
   async remove(id: string) {
     await this.get(id);
