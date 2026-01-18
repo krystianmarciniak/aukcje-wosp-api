@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { CategoryController } from "./category.controller.js";
 
-const router = Router();
+export const categoryRouter = Router();
 const controller = new CategoryController();
 
-router.post("/", controller.create);
-router.get("/", controller.list);
-router.get("/:id", controller.get);
-router.get("/:id/auctions", controller.auctions);
-router.patch("/:id", controller.update);
-router.delete("/:id", controller.remove);
+categoryRouter.post("/", controller.create);
+categoryRouter.get("/", controller.list);
+categoryRouter.get("/:id", controller.get);
+categoryRouter.get("/:id/auctions", controller.auctions);
+categoryRouter.patch("/:id", controller.update);
+categoryRouter.delete("/:id", controller.remove);
 
-export default router;
+export default categoryRouter;

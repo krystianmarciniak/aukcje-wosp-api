@@ -1,32 +1,22 @@
 import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-import { errorHandler } from "../middlewares/errorHandler.js";
+import { errorHandler } from "../shared/error.middleware.js";
+import { AppError } from "../shared/AppError.js";
 
-import auctionsRouter from "../modules/auctions/auction.routes.js";
-import categoriesRouter from "../modules/categories/category.routes.js";
+// routery
+import { categoryRouter } from "../modules/categories/category.routes.js";
+import auctionRouter from "../modules/auctions/auction.routes.js";
 
-export function createApp() {
-  const app = express();
+export const app = express();
 
-  app.use(express.json());
-  app.use(helmet());
-  app.use(cors({ origin: true }));
-  app.use(rateLimit({ windowMs: 60_000, max: 120 }));
+app.use(express.json());
 
-  app.get("/", (_req, res) => {
-    res.status(200).json({
-      message: "Aukcje WOŚP API",
-      health: "/health",
-      auctions: "/api/auctions",
-      categories: "/api/categories",
-    });
-  });
+// ROUTES
+app.use("/api/categories", categoryRouter);
+app.use("/api/auctions", auctionRouter);
 
-  app.use("/api/auctions", auctionsRouter);
-  app.use("/api/categories", categoriesRouter);
+// 404 dla nieznanych endpointów
+app.use((_req, _res, next) => {
+  next(new AppError(404, "NOT_FOUND", "Route not found"));
+});
 
-  app.use(errorHandler);
-  return app;
-}
+app.use(errorHandler);

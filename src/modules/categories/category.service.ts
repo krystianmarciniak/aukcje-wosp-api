@@ -26,14 +26,28 @@ export class CategoryService {
   }
 
   async auctions(categoryId: string) {
-  return prisma.auction.findMany({
-    where: { categoryId },
-  });
-}
-
+    return prisma.auction.findMany({
+      where: { categoryId },
+    });
+  }
 
   async remove(id: string) {
-    await this.get(id);
-    return this.repo.delete(id);
+    const category = await prisma.category.findUnique({
+      where: { id },
+      include: { _count: { select: { auctions: true } } },
+    });
+
+    if (!category) {
+      throw new AppError(404, "CATEGORY_NOT_FOUND", "Category not found");
+    }
+
+    if (category._count.auctions > 0) {
+      throw new AppError(
+        409,
+        "CATEGORY_HAS_AUCTIONS",
+        "Cannot delete category with auctions"
+      );
+    }
+    await this.repo.delete(id);
   }
 }

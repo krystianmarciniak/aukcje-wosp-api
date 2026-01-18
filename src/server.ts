@@ -1,8 +1,15 @@
-import { createApp } from "./app/app.js";
-import { env } from "./config/env.js";
+import { app } from "./app/app.js";
 
-const app = createApp();
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
-app.listen(env.PORT, () => {
-  console.log(`API running on http://localhost:${env.PORT}`);
+app.listen(PORT, () => {
+  console.log(`API running on http://localhost:${PORT}`);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED_REJECTION:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT_EXCEPTION:", err);
 });

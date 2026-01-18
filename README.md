@@ -17,8 +17,8 @@ Aplikacja umożliwia zarządzanie aukcjami oraz kategoriami aukcji z wykorzystan
 ---
 
 ## 📁 Struktura projektu
-
 Projekt został podzielony na moduły domenowe:
+```text
 
 src/
 ├─ modules/
