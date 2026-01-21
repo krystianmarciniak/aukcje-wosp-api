@@ -21,8 +21,12 @@ export class CategoryRepository {
   }
 
   findById(id: string) {
-    return prisma.category.findUnique({ where: { id } });
+    return prisma.category.findUnique({
+      where: { id },
+      include: { auctions: true },
+    });
   }
+
 
   update(id: string, data: UpdateCategoryDto) {
     const clean = stripUndefined(data);

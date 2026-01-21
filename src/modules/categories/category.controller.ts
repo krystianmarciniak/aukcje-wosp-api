@@ -22,10 +22,19 @@ export class CategoryController {
 
   create = async (req: Request, res: Response) => {
     try {
+      // 1) Walidacja wejścia (Zod)
       const dto = CreateCategorySchema.parse(req.body);
+
+      // 2) Logika biznesowa / zapis do bazy (Prisma w serwisie/repo)
       const created = await this.service.create(dto);
+
+      // 3) Odpowiedź HTTP
       return res.status(201).json(created);
     } catch (err: any) {
+      // 4) Najważniejsze: NIE res.json w catch,
+      // tylko przekazanie do globalnego errorHandler
+
+
       if (err?.code === "P2002") {
         return res.status(409).json({
           error: "CATEGORY_ALREADY_EXISTS",
