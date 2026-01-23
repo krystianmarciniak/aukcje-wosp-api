@@ -6,7 +6,6 @@ const stripUndefined = <T extends Record<string, any>>(obj: T) =>
 
 export class CategoryRepository {
   create(data: CreateCategoryDto) {
-  console.log("CREATE CATEGORY DATA:", data);
   return prisma.category.create({ data: { name: data.name } });
 }
 

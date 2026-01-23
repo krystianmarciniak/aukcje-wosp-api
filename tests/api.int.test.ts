@@ -8,14 +8,8 @@ describe("Categories", () => {
       .post("/api/categories")
       .set("Content-Type", "application/json")
       .send({ name: "Elektronika" });
-
-    console.log("STATUS:", res.status);
-    console.log("BODY:", res.body);
-
     expect(res.status).toBe(201);
   });
-
-
 
   it("POST /api/categories -> 400 VALIDATION_ERROR", async () => {
     const res = await request(app).post("/api/categories").send({}).expect(400);
