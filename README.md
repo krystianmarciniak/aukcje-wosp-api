@@ -87,3 +87,28 @@ Aplikacja uruchomi się pod adresem:
 arduino
 Skopiuj kod
 http://localhost:3000
+
+cmkr95lrq0001oxqc8rnd8vhu
+cmkr9wz2m0001oxt4neuggjwh
+cmkrdpyx10000ox5sm5yh8qwx
+
+{
+  "title": "Słuchawki WOŚP",
+  "description": "Nowe",
+  "status": "ACTIVE",
+  "currentPrice": 10,
+  "categoryId": "TU_WKLEJ_ID_KATEGORII",
+  "url": "https://example.com/1"
+}
+
+2) Postman + screeny: testy funkcjonalne (na npm start i .env)
+Odpalasz npm start, potem lecisz po kolei:
+
+POST /api/categories → 201 + dostajesz id
+GET /api/categories → lista + auctionCount
+POST /api/auctions z categoryId → 201
+GET /api/categories/:id/auctions → lista aukcji kategorii
+DELETE /api/categories/:id (gdy ma aukcje) → 409 CATEGORY_HAS_AUCTIONS
+
+Jedno zdanie komentarza:
+„Tu pracuję na bazie z .env (serwer z npm start), więc ID biorę z odpowiedzi w trakcie demo.”

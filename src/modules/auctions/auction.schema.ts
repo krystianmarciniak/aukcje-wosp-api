@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-const AuctionStatus = z.enum(["DRAFT", "ACTIVE", "ENDED"]);
-
 export const CreateAuctionSchema = z.object({
-  title: z.string().min(3),
-  description: z.string().max(5000).optional(),
+  title: z.string().min(2).max(200),
+  description: z.string().max(2000).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ENDED"]).optional(),
-  currentPrice: z.number().int().min(0).optional(),
+  currentPrice: z.number().nonnegative().optional(),
   url: z.string().url().optional(),
   categoryId: z.string().min(1),
 });

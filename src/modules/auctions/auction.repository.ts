@@ -4,30 +4,18 @@ import type { CreateAuctionDto, UpdateAuctionDto } from "./auction.schema.js";
 
 export class AuctionRepository {
   create(dto: CreateAuctionDto) {
-
-    const data: Prisma.AuctionUncheckedCreateInput = {
+    const data: Prisma.AuctionCreateInput = {
       title: dto.title,
       description: dto.description ?? null,
       url: dto.url ?? null,
       status: dto.status ?? "DRAFT",
       currentPrice: dto.currentPrice ?? 0,
-
-      categoryId: (dto as any).categoryId ?? null,
-      createdByUserId: (dto as any).createdByUserId ?? null,
+      category: { connect: { id: dto.categoryId } }, // <- bez any, zawsze jest
     };
 
     return prisma.auction.create({
-      data: {
-        title: dto.title,
-        description: dto.description ?? null,
-        status: dto.status ?? "DRAFT",
-        currentPrice: dto.currentPrice ?? 0,
-        url: dto.url ?? null,
-        categoryId: dto.categoryId,
-      },
-      include: {
-        category: true,
-      },
+      data,
+      include: { category: true },
     });
   }
 
@@ -35,6 +23,7 @@ export class AuctionRepository {
     const where: Prisma.AuctionWhereInput = {};
 
     if (params.status) where.status = params.status;
+
     if (params.q) {
       where.OR = [
         { title: { contains: params.q } },
@@ -56,6 +45,14 @@ export class AuctionRepository {
     });
   }
 
+  findByCategoryId(categoryId: string) {
+    return prisma.auction.findMany({
+      where: { categoryId },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   update(id: string, dto: UpdateAuctionDto) {
     const data: Prisma.AuctionUncheckedUpdateInput = {};
 
@@ -65,8 +62,7 @@ export class AuctionRepository {
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.currentPrice !== undefined) data.currentPrice = dto.currentPrice;
 
-    if ((dto as any).categoryId !== undefined) data.categoryId = (dto as any).categoryId ?? null;
-    if ((dto as any).createdByUserId !== undefined) data.createdByUserId = (dto as any).createdByUserId ?? null;
+    if (dto.categoryId !== undefined) data.categoryId = dto.categoryId;
 
     return prisma.auction.update({ where: { id }, data });
   }

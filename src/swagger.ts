@@ -3,69 +3,59 @@ import swaggerJSDoc from "swagger-jsdoc";
 export const swaggerSpec = swaggerJSDoc({
   definition: {
     openapi: "3.0.0",
-    info: {
-      title: "API WOŚP Aukcje",
-      version: "1.0.0",
-      description: "Dokumentacja REST API projektu zaliczeniowego",
-    },
+    info: { title: "WOŚP Aukcje API", version: "1.0.0" },
     servers: [{ url: "http://localhost:3000" }],
-
     components: {
       schemas: {
-        // Standard błędów w całym API
-        ErrorResponse: {
+        ApiError: {
           type: "object",
           properties: {
             error: { type: "string", example: "NOT_FOUND" },
             message: { type: "string", example: "Route not found" },
-            details: {
-              type: "array",
-              items: { type: "object" },
-              nullable: true,
-              example: [],
-            },
+            details: { nullable: true, example: null },
           },
-          required: ["error", "message"],
+          required: ["error", "message", "details"],
         },
-
-        // Aukcja
-        Auction: {
+        CategoryCreateRequest: {
+          type: "object",
+          properties: { name: { type: "string", example: "Elektronika" } },
+          required: ["name"],
+        },
+        CategoryListItem: {
           type: "object",
           properties: {
-            id: { type: "string", example: "cmkaco8fx0000oxwcwqr3t240" },
-            title: { type: "string", example: "Słuchawki WOŚP" },
-            description: { type: "string", example: "Nowe, zaplombowane" },
-            status: { type: "string", example: "ACTIVE" },
-            currentPrice: { type: "number", example: 0 },
-            categoryId: { type: "string", example: "cmkn37yxi0001oxqkfu3rr5w2" },
-            createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
-          },
-          required: ["id", "title", "status", "categoryId"],
-        },
-
-        // Kategoria (z relacją do aukcji)
-        Category: {
-          type: "object",
-          properties: {
-            id: { type: "string", example: "cmkn37yxi0001oxqkfu3rr5w2" },
+            id: { type: "string", example: "clx123abc..." },
             name: { type: "string", example: "Elektronika" },
-
-            // Relacja: kategoria -> lista aukcji
-            auctions: {
-              type: "array",
-              items: { $ref: "#/components/schemas/Auction" },
-            },
-
-            createdAt: { type: "string", format: "date-time" },
-            updatedAt: { type: "string", format: "date-time" },
+            auctionCount: { type: "integer", example: 0 },
           },
-          required: ["id", "name"],
+          required: ["id", "name", "auctionCount"],
+        },
+        AuctionCreateRequest: {
+          type: "object",
+          properties: {
+            title: { type: "string", example: "Lampa vintage" },
+            description: { type: "string", nullable: true, example: "Stan bardzo dobry" },
+            status: { type: "string", enum: ["DRAFT", "ACTIVE", "ENDED"], example: "ACTIVE" },
+            currentPrice: { type: "number", example: 10 },
+            url: { type: "string", nullable: true, example: "https://example.com/aukcja/1" },
+            categoryId: { type: "string", example: "clxCatId..." },
+          },
+          required: ["title", "categoryId"],
+        },
+        AuctionUpdateRequest: {
+          type: "object",
+          properties: {
+            title: { type: "string", example: "Nowy tytuł" },
+            description: { type: "string", nullable: true, example: "Opis" },
+            status: { type: "string", enum: ["DRAFT", "ACTIVE", "ENDED"], example: "DRAFT" },
+            currentPrice: { type: "number", example: 25 },
+            url: { type: "string", nullable: true, example: "https://example.com" },
+            categoryId: { type: "string", example: "clxCatId..." },
+          },
+          additionalProperties: false,
         },
       },
     },
   },
-
-  // Bierzemy komentarze @openapi z routes
-  apis: ["./src/modules/**/*.routes.ts"],
+  apis: ["src/modules/**/*.routes.ts"], // <- tu zbiera @openapi
 });

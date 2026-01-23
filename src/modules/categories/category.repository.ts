@@ -6,8 +6,10 @@ const stripUndefined = <T extends Record<string, any>>(obj: T) =>
 
 export class CategoryRepository {
   create(data: CreateCategoryDto) {
-    return prisma.category.create({ data });
-  }
+  console.log("CREATE CATEGORY DATA:", data);
+  return prisma.category.create({ data: { name: data.name } });
+}
+
 
   findMany() {
     return prisma.category.findMany({
@@ -20,11 +22,22 @@ export class CategoryRepository {
     });
   }
 
+  findByIdWithAuctionCount(id: string) {
+    return prisma.category.findUnique({
+      where: { id },
+      include: { _count: { select: { auctions: true } } },
+    });
+  }
+
   findById(id: string) {
     return prisma.category.findUnique({
       where: { id },
       include: { auctions: true },
     });
+  }
+
+  countAuctions(categoryId: string) {
+  return prisma.auction.count({ where: { categoryId } });
   }
 
 
@@ -37,3 +50,5 @@ export class CategoryRepository {
     return prisma.category.delete({ where: { id } });
   }
 }
+
+

@@ -31,7 +31,7 @@ export class AuctionController {
 
   get = async (req: Request, res: Response) => {
     const id = req.params.id;
-    if (!id) throw new AppError(400, "BAD_REQUEST", "Missing id");
+    if (!id) throw new AppError("BAD_REQUEST", "Missing id", 400)
 
     const item = await this.service.get(id);
     res.status(200).json(item);
@@ -39,7 +39,8 @@ export class AuctionController {
 
   update = async (req: Request, res: Response) => {
     const id = req.params.id;
-    if (!id) throw new AppError(400, "BAD_REQUEST", "Missing id");
+    if (!id) throw new AppError("BAD_REQUEST", "Missing id", 400)
+
 
     const dto = UpdateAuctionSchema.parse(req.body);
     const updated = await this.service.update(id, dto);
@@ -48,7 +49,8 @@ export class AuctionController {
 
   remove = async (req: Request, res: Response) => {
     const id = req.params.id;
-    if (!id) throw new AppError(400, "BAD_REQUEST", "Missing id");
+    if (!id) throw new AppError("BAD_REQUEST", "Missing id", 400)
+
 
     await this.service.remove(id);
     res.status(204).send();

@@ -1,10 +1,11 @@
+import { AuctionRepository } from "../auctions/auction.repository.js";
+import { CategoryRepository } from "./category.repository.js";
 import { AppError } from "../../shared/AppError.js";
 import type { CreateCategoryDto, UpdateCategoryDto } from "./category.schema.js";
-import { CategoryRepository } from "./category.repository.js";
-import { prisma } from "../../db/prisma.js";
 
 export class CategoryService {
-  constructor(private repo = new CategoryRepository()) { }
+  private repo = new CategoryRepository();
+  private auctionsRepo = new AuctionRepository();
 
   list() {
     return this.repo.findMany();
@@ -12,7 +13,7 @@ export class CategoryService {
 
   async get(id: string) {
     const category = await this.repo.findById(id);
-    if (!category) throw new AppError(404, "NOT_FOUND", "Category not found");
+    if (!category) throw new AppError("CATEGORY_NOT_FOUND", "Category not found", 404);
     return category;
   }
 
@@ -25,29 +26,30 @@ export class CategoryService {
     return this.repo.update(id, dto);
   }
 
-  async auctions(categoryId: string) {
-    return prisma.auction.findMany({
-      where: { categoryId },
-    });
+  async listAuctionsByCategory(categoryId: string) {
+    const exists = await this.repo.findById(categoryId);
+    if (!exists) {
+      throw new AppError("CATEGORY_NOT_FOUND", "Category not found", 404);
+    }
+    return this.auctionsRepo.findByCategoryId(categoryId);
   }
 
   async remove(id: string) {
-    const category = await prisma.category.findUnique({
-      where: { id },
-      include: { _count: { select: { auctions: true } } },
-    });
+    const category = await this.repo.findByIdWithAuctionCount(id);
 
     if (!category) {
-      throw new AppError(404, "CATEGORY_NOT_FOUND", "Category not found");
+      throw new AppError("CATEGORY_NOT_FOUND", "Category not found", 404);
     }
 
     if (category._count.auctions > 0) {
       throw new AppError(
-        409,
         "CATEGORY_HAS_AUCTIONS",
-        "Cannot delete category with auctions"
+        "Cannot delete category with auctions",
+        409
       );
     }
+
+
     await this.repo.delete(id);
   }
 }

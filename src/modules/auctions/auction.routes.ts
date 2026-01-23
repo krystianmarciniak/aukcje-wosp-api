@@ -2,11 +2,23 @@ import { Router } from "express";
 import { AuctionController } from "./auction.controller.js";
 import { asyncHandler } from "../../shared/asyncHandler.js";
 
-
 const router = Router();
 const controller = new AuctionController();
 
+router.get("/", asyncHandler(controller.list));
+router.get("/:id", asyncHandler(controller.get));
 router.post("/", asyncHandler(controller.create));
+router.patch("/:id", asyncHandler(controller.update));
+router.delete("/:id", asyncHandler(controller.remove));
+
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Auctions
+ *     description: Operacje na aukcjach
+ */
+
 /**
  * @openapi
  * /api/auctions:
@@ -18,7 +30,7 @@ router.post("/", asyncHandler(controller.create));
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Auction'
+ *             $ref: '#/components/schemas/AuctionCreateRequest'
  *     responses:
  *       201:
  *         description: Aukcja utworzona
@@ -31,19 +43,25 @@ router.post("/", asyncHandler(controller.create));
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Konflikt (np. niepoprawna relacja)
+ *               $ref: '#/components/schemas/ApiError'
+ *       404:
+ *         description: Not Found (np. brak kategorii)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-router.get("/", asyncHandler(controller.list));
-/**
- * @openapi
- * /api/auctions:
+ *               $ref: '#/components/schemas/ApiError'
+ *       409:
+ *         description: Konflikt (np. duplikat/ograniczenie)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   get:
  *     tags: [Auctions]
  *     summary: Pobiera listę aukcji
@@ -63,9 +81,14 @@ router.get("/", asyncHandler(controller.list));
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Auction'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  */
 
-router.get("/:id", asyncHandler(controller.get));
 /**
  * @openapi
  * /api/auctions/{id}:
@@ -90,13 +113,13 @@ router.get("/:id", asyncHandler(controller.get));
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-router.patch("/:id", asyncHandler(controller.update));
-/**
- * @openapi
- * /api/auctions/{id}:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   patch:
  *     tags: [Auctions]
  *     summary: Aktualizuje aukcję
@@ -111,28 +134,38 @@ router.patch("/:id", asyncHandler(controller.update));
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Auction'
+ *             $ref: '#/components/schemas/AuctionUpdateRequest'
  *     responses:
  *       200:
  *         description: Aukcja zaktualizowana
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Auction'
  *       400:
  *         description: Błąd walidacji
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiError'
  *       404:
  *         description: Aukcja nie znaleziona
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-router.delete("/:id", asyncHandler(controller.remove));
-/**
- * @openapi
- * /api/auctions/{id}:
+ *               $ref: '#/components/schemas/ApiError'
+ *       409:
+ *         description: Konflikt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   delete:
  *     tags: [Auctions]
  *     summary: Usuwa aukcję
@@ -150,7 +183,13 @@ router.delete("/:id", asyncHandler(controller.remove));
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  */
 
 

@@ -1,10 +1,24 @@
 import { Router } from "express";
 import { CategoryController } from "./category.controller.js";
+import { asyncHandler } from "../../shared/asyncHandler.js";
 
-export const categoryRouter = Router();
+const router = Router();
 const controller = new CategoryController();
 
-categoryRouter.post("/", controller.create);
+router.get("/", asyncHandler(controller.list));
+router.get("/:id", asyncHandler(controller.get));
+router.get("/:id/auctions", asyncHandler(controller.listAuctions));
+router.post("/", asyncHandler(controller.create));
+router.patch("/:id", asyncHandler(controller.update));
+router.delete("/:id", asyncHandler(controller.remove));
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Categories
+ *     description: Operacje na kategoriach
+ */
+
 /**
  * @openapi
  * /api/categories:
@@ -19,12 +33,13 @@ categoryRouter.post("/", controller.create);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Category'
- */
-
-/**
- * @openapi
- * /api/categories:
+ *                 $ref: '#/components/schemas/CategoryListItem'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   post:
  *     tags: [Categories]
  *     summary: Tworzy nową kategorię
@@ -33,32 +48,105 @@ categoryRouter.post("/", controller.create);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: Elektronika
- *             required: [name]
+ *             $ref: '#/components/schemas/CategoryCreateRequest'
  *     responses:
  *       201:
  *         description: Created
- *       400:
- *           description: Validation error
- *           content:
- *             application/json:
- *               schema:
- *                 $ref: '#/components/schemas/ErrorResponse'   
- *       409:
- *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/CategoryListItem'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       409:
+ *         description: Conflict (np. duplikat nazwy)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  */
 
 /**
  * @openapi
  * /api/categories/{id}:
+ *   get:
+ *     tags: [Categories]
+ *     summary: Pobiera szczegóły kategorii
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryDetail'
+ *       404:
+ *         description: Not Found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *   patch:
+ *     tags: [Categories]
+ *     summary: Aktualizuje kategorię
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CategoryUpdateRequest'
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryDetail'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       404:
+ *         description: Not Found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  *   delete:
  *     tags: [Categories]
  *     summary: Usuwa kategorię po ID
@@ -68,29 +156,56 @@ categoryRouter.post("/", controller.create);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID kategorii do usunięcia
  *     responses:
  *       204:
- *         description: Kategoria została pomyślnie usunięta
+ *         description: No Content
  *       404:
- *         description: Nie znaleziono kategorii o podanym ID
+ *         description: Not Found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Konflikt - kategoria posiada przypisane produkty/relacje i nie może zostać usunięta
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiError'
  */
 
-// Swagger wygląda jak produkt, a nie demo.
-categoryRouter.get("/", controller.list);
-categoryRouter.get("/:id", controller.get);
-categoryRouter.get("/:id/auctions", controller.auctions);
-categoryRouter.patch("/:id", controller.update);
-categoryRouter.delete("/:id", controller.remove);
+/**
+ * @openapi
+ * /api/categories/{id}/auctions:
+ *   get:
+ *     tags: [Categories]
+ *     summary: Pobiera aukcje danej kategorii
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista aukcji kategorii
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Auction'
+ *       404:
+ *         description: Kategoria nie istnieje
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ */
 
-export default categoryRouter;
+export default router;

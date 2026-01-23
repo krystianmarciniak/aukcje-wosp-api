@@ -2,40 +2,43 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
-  // 1) Czyścimy dane w bezpiecznej kolejności (aukcje -> kategorie)
-  await prisma.auction.deleteMany();
-  await prisma.category.deleteMany();
+  console.log("🌱 Seeding...");
 
-  // 2) Kategorie
-  const elektronika = await prisma.category.create({
-    data: { name: "Elektronika" },
-  });
+  // 1) Kategorie (findFirst -> create)
+  const cat1 =
+    (await prisma.category.findFirst({ where: { name: "Elektronika" } })) ??
+    (await prisma.category.create({ data: { name: "Elektronika" } }));
 
-  const sport = await prisma.category.create({
-    data: { name: "Sport" },
-  });
+  const cat2 =
+    (await prisma.category.findFirst({ where: { name: "Ubrania" } })) ??
+    (await prisma.category.create({ data: { name: "Ubrania" } }));
 
-  // 3) Aukcje
-  await prisma.auction.createMany({
-    data: [
-      {
-        title: "Słuchawki WOŚP",
-        description: "Nowe, zaplombowane",
-        status: "ACTIVE",
-        currentPrice: 0,
-        categoryId: elektronika.id,
-      },
-      {
-        title: "Koszulka WOŚP",
-        description: "Limitowana edycja",
-        status: "DRAFT",
-        currentPrice: 0,
-        categoryId: sport.id,
-      },
-    ],
-  });
+  // 2) Aukcje (tworzymy tylko jeśli nie istnieją)
+  const auctions = [
+    {
+      title: "Słuchawki WOŚP",
+      description: "Nowe, zaplombowane",
+      status: "ACTIVE",
+      currentPrice: 0,
+      categoryId: cat1.id,
+    },
+    {
+      title: "Koszulka WOŚP",
+      description: "Limitowana edycja",
+      status: "DRAFT",
+      currentPrice: 0,
+      categoryId: cat2.id,
+    },
+  ];
 
-  console.log("✅ Seed completed");
+  for (const a of auctions) {
+    const exists = await prisma.auction.findFirst({
+      where: { title: a.title },
+    });
+    if (!exists) await prisma.auction.create({ data: a });
+  }
+
+  console.log("✅ Seed done.");
 }
 
 main()
