@@ -5,6 +5,7 @@ import { AppError } from "../shared/AppError.js";
 import { swaggerSpec } from "../swagger.js";
 import categoryRouter from "../modules/categories/category.routes.js";
 import auctionRouter from "../modules/auctions/auction.routes.js";
+import { externalRouter } from "../modules/external/external.routes.js";
 
 export const app = express();
 
@@ -16,6 +17,8 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use("/api/categories", categoryRouter);
 app.use("/api/auctions", auctionRouter);
+app.use("/api/external", externalRouter);
+
 
 // 404 -> AppError -> errorHandler (spójny format)
 app.use((req, res, next) => {
