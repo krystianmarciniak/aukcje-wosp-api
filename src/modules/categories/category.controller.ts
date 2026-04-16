@@ -30,7 +30,6 @@ export class CategoryController {
   };
 
   create = async (req: Request, res: Response) => {
-    const def: any = (CreateCategorySchema as any)._def;
     const dto = CreateCategorySchema.parse(req.body);
     const created = await this.service.create(dto);
     res.status(201).json(created);
@@ -43,7 +42,6 @@ export class CategoryController {
     const auctions = await this.service.listAuctionsByCategory(id);
     res.status(200).json(auctions);
   };
-
 
   update = async (req: Request, res: Response) => {
     const id = req.params.id;
